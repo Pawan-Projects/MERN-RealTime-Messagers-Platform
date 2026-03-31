@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>🔥 Chat App Test</title>
+  <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+</head>
+
+<body>
+  <h2>🔥 Real-time Chat Test</h2>
+
+  <!-- USER SETUP -->
+  <div>
+    <input id="userId" placeholder="Your User ID" />
+    <button onclick="register()">Register</button>
+  </div>
+
+  <br>
+
+  <!-- MESSAGE BOX -->
+  <div>
+    <input id="receiverId" placeholder="Receiver ID" />
+    <input id="message" placeholder="Type message..." />
+    <button onclick="sendMessage()">Send</button>
+  </div>
+
+  <br>
+
+  <!-- CHAT WINDOW -->
+  <h3>Messages:</h3>
+  <div id="chat" style="border:1px solid black; height:250px; overflow:auto; padding:10px;"></div>
+
+  <script>
+    const socket = io("http://localhost:8000");
+
+    let myUserId = "";
+
+    // 🔥 TOKENS (auto set)
+    const tokens = {
+       "69caca57df01a7d54396894f": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWNhY2E1N2RmMDFhN2Q1NDM5Njg5NGYiLCJpYXQiOjE3NzQ4OTk1MzMsImV4cCI6MTc3NTUwNDMzM30.P7xa--FNYMZwZsVAf0NzNyCci3XdDcQeEAULD3pYBbM",
+
+       "69caca80df01a7d543968952": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI2OWNhY2E4MGRmMDFhN2Q1NDM5Njg5NTIiLCJpYXQiOjE3NzQ4OTk1ODAsImV4cCI6MTc3NTUwNDM4MH0.sUkSZCZAUZjpm_EawqvX8HauiKFSk5tCDTGEtr9W6bs"
+    };
+
+    // 🔥 Register user
+    function register() {
+      myUserId = document.getElementById("userId").value;
+
+      if (!myUserId) {
+        alert("Enter User ID");
+        return;
+      }
+
+      socket.emit("register", myUserId);
+      alert("✅ Registered as " + myUserId);
+    }
+
+    // 🔥 Receive message
+    socket.on("receiveMessage", (msg) => {
+      const chat = document.getElementById("chat");
+
+      const div = document.createElement("div");
+      div.innerHTML = `<b>${msg.sender || "User"}:</b> ${msg.text}`;
+
+      chat.appendChild(div);
+    });
+
+    // 🔥 Send message
+    function sendMessage() {
+      const receiverId = document.getElementById("receiverId").value;
+      const text = document.getElementById("message").value;
+
+      const token = tokens[myUserId];
+
+      if (!receiverId || !text || !token) {
+        alert("Fill all fields properly");
+        return;
+      }
+
+      fetch("http://localhost:8000/api/message", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": "Bearer " + token
+        },
+        body: JSON.stringify({
+          receiverId,
+          text
+        })
+      });
+
+      // show own message
+      const chat = document.getElementById("chat");
+      const div = document.createElement("div");
+      div.innerHTML = `<b>Me:</b> ${text}`;
+      chat.appendChild(div);
+
+      document.getElementById("message").value = "";
+    }
+  </script>
+</body>
+</html>
